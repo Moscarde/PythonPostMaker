@@ -1,3 +1,9 @@
+#custom
+*.json
+*.png
+*.html
+*.ttf
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
