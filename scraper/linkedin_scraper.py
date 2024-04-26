@@ -38,9 +38,9 @@ class LinkedinScraper:
         self.driver = webdriver.Chrome()
         self.date = datetime.now().strftime("%Y-%m-%d")
         self.base_path = "scraped/" + self.date
-        self.output_path = ""  # utilizado para debug
+        self.output_path = ""  
 
-    def scrape_data(self, url, debug):
+    def scrape_data(self, url, debug = False):
         self.driver.get(url)
         self.close_sign_modal()
 
@@ -100,7 +100,7 @@ class LinkedinScraper:
                 article_element.get_attribute("outerHTML"), "html.parser"
             )
 
-            data["autor"] = self.get_autor(soup_article)
+            data["author"] = self.get_author(soup_article)
 
             data["content"] = self.get_content(soup_article)
 
@@ -111,7 +111,7 @@ class LinkedinScraper:
             print(e)
             return None
 
-    def get_autor(self, soup_article):
+    def get_author(self, soup_article):
         header = soup_article.find(
             "div", attrs={"data-test-id": "main-feed-activity-card__entity-lockup"}
         )
@@ -132,6 +132,7 @@ class LinkedinScraper:
             "headline": headline,
             "post_age": post_age,
             "img_src": img_src,
+            "img_filename": "author_img.png",
         }
 
     def get_content(self, soup_article):
@@ -174,10 +175,11 @@ class LinkedinScraper:
             "imgs_src": content_imgs_src,
             "type": content_type,
             "reactions": reactions,
+            "img_filenames": [f"content_img_{index}.png" for index in range(len(content_imgs_src))],
         }
 
     def get_comments(self, soup_article):
-        comments_element = soup_article.find_all("section", class_="comment")[:2]
+        comments_element = soup_article.find_all("section", class_="comment")[:3]
 
         comments = []
         for index, comment in enumerate(comments_element):
@@ -188,7 +190,7 @@ class LinkedinScraper:
                 item.strip() for item in comment_header if item.strip()
             ]
 
-            autor = comment_header_texts[0]
+            author = comment_header_texts[0]
             headline = comment_header_texts[1]
             comment_age = comment_header_texts[2]
 
@@ -196,25 +198,27 @@ class LinkedinScraper:
             profile_image_src = comment.find("img").get("src")
             comment_text = comment.find(class_="comment__text").text
 
-            image_index = str(index)
             comments.append(
                 {
-                    "autor": autor,
+                    "author": author,
                     "headline": headline,
                     "comment_age": comment_age,
                     "profile_url": profile_url,
                     "profile_image_src": profile_image_src,
                     "comment_text": comment_text,
+                    "img_filename": f"comment_profile_photo_{index}.png",
                 }
             )
 
         return comments
 
     def save_data(self, data):
-        folder_name_autor = clear_text(data["autor"]["name"])
+        folder_name_author = clear_text(data["author"]["name"])
         folder_name_post = clear_text(data["content"]["text"][:20])
 
-        self.output_path = os.path.join(self.base_path, folder_name_autor, folder_name_post)
+        self.output_path = os.path.join(
+            self.base_path, folder_name_author, folder_name_post
+        )
 
         if not os.path.exists(self.output_path):
             os.makedirs(self.output_path)
@@ -227,11 +231,11 @@ class LinkedinScraper:
         self.save_images(data)
 
     def save_images(self, data):
-        self.driver.get(data["autor"]["img_src"])
+        self.driver.get(data["author"]["img_src"])
         sleep(0.5)
 
         self.driver.find_element(by=By.TAG_NAME, value="img").screenshot(
-            f"{self.output_path}/autor_img.png"
+            f"{self.output_path}/{data['author']['img_filename']}"
         )
 
         for index, img in enumerate(data["content"]["imgs_src"]):
@@ -249,7 +253,7 @@ class LinkedinScraper:
                 self.driver.get(comment["profile_image_src"])
                 sleep(0.5)
 
-                image_output_path = f"{self.output_path}/comment_profile_photo_{index}.png"
+                image_output_path = f"{self.output_path}/{comment['img_filename']}"
 
                 self.driver.find_element(by=By.TAG_NAME, value="img").screenshot(
                     image_output_path
@@ -274,8 +278,9 @@ class LinkedinScraper:
 
 if __name__ == "__main__":
     # abrahan
-    url = """https://www.linkedin.com/feed/update/urn:li:activity:7186083318310834177?updateEntityUrn=urn%3Ali%3Afs_feedUpdate%3A%28V2%2Curn%3Ali%3Aactivity%3A7186083318310834177%29
+    url = """https://www.linkedin.com/posts/yurilucena_csharp-dotnet-cleancode-activity-7188197867642142721-65yz?utm_source=share&utm_medium=member_desktop
 """
     scraper = LinkedinScraper()
     scraper.scrape_data(url, debug=True)
     scraper.close()
+    print("Done")
