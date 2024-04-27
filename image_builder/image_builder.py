@@ -1,21 +1,20 @@
 import json
 import os
 
-from PIL import Image, ImageDraw, ImageFont
 from image_builder.image_processor import ImageProcessor
 from image_builder.text_processor import TextProcessor
 
 
 class ImageBuilder:
     CONTENT_TEXT_PADDING_LEFT = 136
-    CONTENT_TEXT_SIZE = 22
-    CONTENT_TEXT_FONT = "seguiemj"
 
     def __init__(self, path):
         self.path = path
         self.output_path = self.path + "/processed_images"
         self.data = self.read_file(os.path.join(path, "data.json"))
         self.height_line = 29
+        self.text_font = "seguiemj"
+        self.text_size = 22
 
     def read_file(self, path):
         try:
@@ -38,7 +37,7 @@ class ImageBuilder:
 
         if len(self.data["content"]["img_filenames"]) > 0:
             self.paginate_content_media(data=self.data)
-        
+
         if len(self.data["comments"]) > 0:
             self.paginate_comments_images(data=self.data)
 
@@ -74,7 +73,7 @@ class ImageBuilder:
             else text_splited[: max_lines_per_image - 4]
         )
 
-        height = (200 if output_count == 1 else 280) + len(
+        height = (210 if output_count == 1 else 290) + len(
             text_to_build.split("\n")
         ) * self.height_line
 
@@ -94,8 +93,6 @@ class ImageBuilder:
             height=height,
         )
 
-        # content_top_y = y + 20
-
         self.place_author_header(image, draw, frame["y"] + 20)
 
         if continued:
@@ -110,18 +107,18 @@ class ImageBuilder:
         else:
             content_text_padding_top = frame["y"] + 117
 
-        # content text
+        content_text_padding_left = 136
+
         ImageProcessor.write_text(
             draw=draw,
             text=text,
-            pos=(self.CONTENT_TEXT_PADDING_LEFT, content_text_padding_top),
+            pos=(content_text_padding_left, content_text_padding_top),
             multline=True,
-            font_size=self.CONTENT_TEXT_SIZE,
-            font=self.CONTENT_TEXT_FONT,
+            font_size=self.text_size,
+            font=self.text_font,
             spacing=12,
         )
 
-        # footer
         if not end:
             ImageProcessor.paste_image(
                 image,
@@ -140,7 +137,7 @@ class ImageBuilder:
             ImageProcessor.paste_image(
                 image,
                 "backgrounds/reaction_icon_3.png",
-                y=frame["end_y"] - 94,
+                pos=(frame["x"] + 30, frame["end_y"] - 90),
             )
 
             reactions = self.data["content"]["reactions"]
@@ -155,7 +152,7 @@ class ImageBuilder:
                     text=reactions_text,
                     pos=(
                         206,
-                        frame["end_y"] - 98,
+                        frame["end_y"] - 94,
                     ),
                     font_size=18,
                     color=(130, 130, 130),
@@ -292,11 +289,10 @@ class ImageBuilder:
 
             age = comment["comment_age"]
 
-            if 'default' in comment["img_filename"]:
+            if "default" in comment["img_filename"]:
                 img_path = "backgrounds/default_profile_photo.png"
             else:
                 img_path = f"{self.path}/{comment['img_filename']}"
-
 
             text = TextProcessor.break_line(comment["comment_text"], line_max=65)
 
@@ -350,8 +346,8 @@ class ImageBuilder:
                 draw,
                 text=text,
                 pos=(230, comment_y + 80),
-                font_size=22,
-                font="seguiemj",
+                font_size=self.text_size,
+                font=self.text_font,
                 multline=True,
                 spacing=15,
             )
