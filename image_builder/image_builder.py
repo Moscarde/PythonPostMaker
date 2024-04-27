@@ -161,7 +161,7 @@ class ImageBuilder:
 
         image.save(f"{self.output_path}/square_post_{output_count}.png")
 
-    def paginate_content_images(self, data, output_count=1):
+    def paginate_content_media(self, data):
         max_height = 800  # 900
         for index, content_image_filename in enumerate(
             data["content"]["img_filenames"]

@@ -53,7 +53,7 @@ class ImageProcessor:
         return draw
 
     @staticmethod
-    def place_content_image(
+    def place_content_media(
         image, path, border, frame_size, frame_pos, padding_bottom, padding_top
     ):
         new_image = Image.open(path)
