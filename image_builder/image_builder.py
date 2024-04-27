@@ -35,8 +35,10 @@ class ImageBuilder:
             self.data = self.anonimous_data()
 
         self.paginate_post_images(data=self.data)
+
         if len(self.data["content"]["img_filenames"]) > 0:
-            self.paginate_content_images(data=self.data)
+            self.paginate_content_media(data=self.data)
+        
         if len(self.data["comments"]) > 0:
             self.paginate_comments_images(data=self.data)
 
@@ -159,52 +161,63 @@ class ImageBuilder:
                     color=(130, 130, 130),
                 )
 
-        image.save(f"{self.output_path}/square_post_{output_count}.png")
+        ImageProcessor.save_image(
+            image, f"{self.output_path}/square_post_{output_count}.png"
+        )
 
     def paginate_content_media(self, data):
-        max_height = 800  # 900
         for index, content_image_filename in enumerate(
             data["content"]["img_filenames"]
         ):
-            height_frame = 900
-            image, draw = ImageProcessor.start_image("backgrounds/3c.png")
-
-            image, frame = ImageProcessor.place_frame(
-                image,
-                height=height_frame,
-            )
-
-            image = self.place_author_header(
-                image=image, draw=draw, content_top_y=frame["y"] + 20
-            )
-
-            padding_bottom = 40
-            padding_top = 80
-            image = ImageProcessor.place_content_image(
-                image,
-                f"{self.path}/{content_image_filename}",
-                border=40,
-                frame_size=(frame["width"], frame["height"]),
-                frame_pos=(frame["pos"]),
-                padding_bottom=padding_bottom,
-                padding_top=padding_top,
-            )
-
-            if index < len(data["content"]["img_filenames"]) - 1:
-                image, pos = ImageProcessor.paste_image(
-                    image,
-                    "backgrounds/ellipsis_continue.png",
-                    y=frame["end_y"] - 70,
-                )
-
+            if index == len(data["content"]["img_filenames"]) - 1:
+                end = True
             else:
-                image, pos = ImageProcessor.paste_image(
-                    image,
-                    "backgrounds/action_bar.png",
-                    y=frame["end_y"] - 75,
-                )
+                end = False
 
-            image.save(f"{self.output_path}/square_content_{index}.png")
+            self.build_content_media_image(content_image_filename, index, end=end)
+
+    def build_content_media_image(self, content_image_filename, index, end):
+        height_frame = 900
+        image, draw = ImageProcessor.start_image("backgrounds/3c.png")
+
+        image, frame = ImageProcessor.place_frame(
+            image,
+            height=height_frame,
+        )
+
+        image = self.place_author_header(
+            image=image, draw=draw, content_top_y=frame["y"] + 20
+        )
+
+        padding_bottom = 40
+        padding_top = 80
+        image = ImageProcessor.place_content_media(
+            image,
+            f"{self.path}/{content_image_filename}",
+            border=40,
+            frame_size=(frame["width"], frame["height"]),
+            frame_pos=(frame["pos"]),
+            padding_bottom=padding_bottom,
+            padding_top=padding_top,
+        )
+
+        if end:
+            image, pos = ImageProcessor.paste_image(
+                image,
+                "backgrounds/ellipsis_continue.png",
+                y=frame["end_y"] - 70,
+            )
+
+        else:
+            image, pos = ImageProcessor.paste_image(
+                image,
+                "backgrounds/action_bar.png",
+                y=frame["end_y"] - 75,
+            )
+
+        ImageProcessor.save_image(
+            image, f"{self.output_path}/square_content_{index}.png"
+        )
 
     def paginate_comments_images(self, data, output_count=1):
         max_height = 800  # 900
@@ -279,10 +292,11 @@ class ImageBuilder:
 
             age = comment["comment_age"]
 
-            img_path = f"{self.path}/{comment['img_filename']}"
-
-            if not os.path.exists(img_path):
+            if 'default' in comment["img_filename"]:
                 img_path = "backgrounds/default_profile_photo.png"
+            else:
+                img_path = f"{self.path}/{comment['img_filename']}"
+
 
             text = TextProcessor.break_line(comment["comment_text"], line_max=65)
 
@@ -350,7 +364,9 @@ class ImageBuilder:
                 path="backgrounds/ellipsis_continue.png",
                 y=frame["end_y"] - 70,
             )
-        image.save(f"{self.output_path}/comments_{output_count}.png")
+        ImageProcessor.save_image(
+            image, f"{self.output_path}/comments_{output_count}.png"
+        )
 
     def place_author_header(self, image, draw, content_top_y):
         author_name = self.data["author"]["name"]
@@ -361,7 +377,10 @@ class ImageBuilder:
         )
         post_time_stamp = self.data["author"]["post_age"]
 
-        author_image_path = self.path + "/author_img.png"
+        if "default" in self.data["author"]["img_filename"]:
+            author_image_path = "backgrounds/default_profile_photo.png"
+        else:
+            author_image_path = f"{self.path}/{self.data['author']['img_filename']}"
 
         image, pos = ImageProcessor.paste_image(
             image,
