@@ -178,13 +178,16 @@ class ImageBuilder:
                 image=image, draw=draw, content_top_y=frame["y"] + 20
             )
 
-            botton_border = 40
+            padding_bottom = 40
+            padding_top = 80
             image = ImageProcessor.place_content_image(
                 image,
                 f"{self.path}/{content_image_filename}",
                 border=40,
-                frame_size=(frame["width"], frame["height"] - botton_border),
+                frame_size=(frame["width"], frame["height"]),
                 frame_pos=(frame["pos"]),
+                padding_bottom=padding_bottom,
+                padding_top=padding_top,
             )
 
             if index < len(data["content"]["img_filenames"]) - 1:
@@ -198,7 +201,7 @@ class ImageBuilder:
                 image, pos = ImageProcessor.paste_image(
                     image,
                     "backgrounds/action_bar.png",
-                    y=frame["end_y"] - 70,
+                    y=frame["end_y"] - 75,
                 )
 
             image.save(f"{self.output_path}/square_content_{index}.png")

@@ -53,25 +53,34 @@ class ImageProcessor:
         return draw
 
     @staticmethod
-    def place_content_image(image, path, border, frame_size, frame_pos):
+    def place_content_image(
+        image, path, border, frame_size, frame_pos, padding_bottom, padding_top
+    ):
         new_image = Image.open(path)
+
+        frame_size = (frame_size[0], frame_size[1] - padding_top - padding_bottom)
+        frame_pos = (frame_pos[0], frame_pos[1] + padding_top)
 
         if new_image.width > new_image.height:
             new_image_max_width = frame_size[0] - 2 * border
             new_image_width = new_image_max_width
-            new_image_height = int(new_image.height * new_image_max_width / new_image.width)
+            new_image_height = int(
+                new_image.height * new_image_max_width / new_image.width
+            )
 
             new_image_pos = (
                 frame_pos[0] + border,
-                int((frame_pos[1]) + (frame_size[1] - new_image.height) / 2),
+                int((frame_pos[1]) + (frame_size[1] - new_image_height) / 2),
             )
         else:
             new_image_max_height = frame_size[1] - 2 * border
-            new_image_width = int(new_image.width * new_image_max_height / new_image.height)
+            new_image_width = int(
+                new_image.width * new_image_max_height / new_image.height
+            )
             new_image_height = new_image_max_height
 
             new_image_pos = (
-                int((frame_pos[0]) + (frame_size[0] - new_image.width) / 2),
+                int((frame_pos[0]) + (frame_size[0] - new_image_width) / 2),
                 frame_pos[1] + border,
             )
 
