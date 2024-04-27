@@ -1,9 +1,20 @@
-
 class TextProcessor:
+    """
+    Classe para processamento de texto.
+    """
 
-    
     @staticmethod
-    def remove_emoji(text):
+    def remove_emoji(text) -> str:
+        """
+        Remove emojis do texto.
+
+        Parâmetros:
+            text (str): O texto que pode conter emojis.
+
+        Retorna:
+            str: O texto sem emojis.
+        """
+
         clean_text = ""
         for caractere in text:
             if not ord(caractere) > 0xFFFF:
@@ -11,7 +22,17 @@ class TextProcessor:
         return clean_text
 
     @staticmethod
-    def break_line(text, line_max=75):
+    def break_line(text, line_max=75) -> str:
+        """
+        Quebra o texto em várias linhas, limitando o comprimento máximo de cada linha.
+
+        Parâmetros:
+            text (str): O texto a ser quebrado em linhas.
+            line_max (int, opcional): O comprimento máximo de cada linha. O padrão é 75.
+
+        Retorna:
+            str: O texto quebrado em várias linhas.
+        """
         final_text = []
 
         for i, line in enumerate(text.split("\n")):

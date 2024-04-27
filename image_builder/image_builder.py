@@ -6,17 +6,39 @@ from image_builder.text_processor import TextProcessor
 
 
 class ImageBuilder:
-    CONTENT_TEXT_PADDING_LEFT = 136
+    """
+    Inicializa a classe ImageBuilder.
 
-    def __init__(self, path):
+    Parâmetros:
+        path (str): O caminho para o diretório de entrada.
+        background (str, opcional): O nome do arquivo de imagem de fundo ou pasta dentro de "backgrounds/carrossel" contendo as imagens. O padrão
+        é "default_blue" (background_continous=False).
+        background_continous (bool, opcional): Indica se o fundo deve ser contínuo em todas as páginas. O padrão é False.
+    """
+
+    def __init__(self, path, background="default_blue", background_continous=False):
         self.path = path
         self.output_path = self.path + "/processed_images"
         self.data = self.read_file(os.path.join(path, "data.json"))
         self.height_line = 29
         self.text_font = "seguiemj"
         self.text_size = 22
+        self.background = background
+        self.background_continous = background_continous
 
-    def read_file(self, path):
+    def read_file(self, path) -> dict:
+        """
+        Lê o arquivo JSON fornecido e retorna os dados como um dicionário.
+
+        Parâmetros:
+            path (str): O caminho para o arquivo JSON.
+
+        Retorna:
+            dict: Os dados lidos do arquivo JSON.
+
+        Se ocorrer um erro ao ler o arquivo, imprime uma mensagem de erro e retorna None.
+        """
+
         try:
             with open(path, "r", encoding="utf-8") as file:
                 data = json.load(file)
@@ -26,14 +48,28 @@ class ImageBuilder:
             print("Erro ao ler o arquivo:", e)
             return None
 
-    def build(self, anonymous=False):
+    def build(self, anonymous=False) -> None:
+        """
+        Constrói as imagens com base nos dados fornecidos.
+
+        Parâmetros:
+            anonymous (bool, opcional): Se True, substitui os dados do autor e dos comentários por valores padrão.
+
+        Retorno:
+            int: 1 se as imagens forem construídas com sucesso, 0 caso contrário.
+
+        Esta função cria as imagens com base nos dados fornecidos. Se o parâmetro 'anonymous' for True,
+        os dados do autor e dos comentários serão substituídos por valores padrão antes da construção das imagens.
+        """
+
+        # TODO: adicionar bloco try
         if not os.path.exists(self.output_path):
             os.mkdir(self.output_path)
 
         if anonymous:
             self.data = self.anonimous_data()
 
-        self.paginate_post_images(data=self.data)
+        self.paginate_post_text(data=self.data)
 
         if len(self.data["content"]["img_filenames"]) > 0:
             self.paginate_content_media(data=self.data)
@@ -41,7 +77,15 @@ class ImageBuilder:
         if len(self.data["comments"]) > 0:
             self.paginate_comments_images(data=self.data)
 
-    def anonimous_data(self):
+        return 1
+
+    def anonimous_data(self) -> dict:
+        """
+        Substitui os dados do autor e dos comentários por valores padrão.
+
+        Retorna:
+            dict: Os dados com valores padrão para o autor e os comentários.
+        """
         data = self.data
         data["author"]["name"] = "Usuário do LinkedIn"
         data["author"]["img_filename"] = "default"
@@ -52,7 +96,14 @@ class ImageBuilder:
 
         return data
 
-    def paginate_post_images(self, data, output_count=1):
+    def paginate_post_text(self, data, output_count=1) -> None:
+        """
+        Pagina as imagens do post de acordo com o número máximo de linhas permitidas.
+
+        Parâmetros:
+            data (dict): Os dados do post.
+            output_count (int, opcional): O contador de saída para nomear os arquivos de imagem. O padrão é 1.
+        """
         max_lines_per_image = 26
 
         text = TextProcessor.break_line(data["content"]["text"])
@@ -65,7 +116,7 @@ class ImageBuilder:
             page_text = "\n".join(text_splited[max_lines_per_image - 4 :])
             new_data = data.copy()
             new_data["content"]["text"] = page_text
-            self.paginate_post_images(data=new_data, output_count=output_count + 1)
+            self.paginate_post_text(data=new_data, output_count=output_count + 1)
 
         text_to_build = "\n".join(
             text_splited
@@ -77,7 +128,7 @@ class ImageBuilder:
             text_to_build.split("\n")
         ) * self.height_line
 
-        self.build_post_image(
+        self.build_post_text(
             text=text_to_build,
             output_count=output_count,
             continued=output_count > 1,
@@ -85,8 +136,18 @@ class ImageBuilder:
             height=height,
         )
 
-    def build_post_image(self, text, output_count, continued, end, height):
-        image, draw = ImageProcessor.start_image("backgrounds/3c.png")
+    def build_post_text(self, text, output_count, continued, end, height) -> None:
+        """
+        Constrói a imagem do post com base nos dados fornecidos.
+
+        Parâmetros:
+            text (str): O texto do post.
+            output_count (int): O contador de saída para nomear o arquivo de imagem.
+            continued (bool): Indica se o post continua em outra página.
+            end (bool): Indica se é a última página do post.
+            height (int): A altura da imagem.
+        """
+        image, draw = ImageProcessor.start_image(self.get_background())
 
         image, frame = ImageProcessor.place_frame(
             image,
@@ -159,10 +220,16 @@ class ImageBuilder:
                 )
 
         ImageProcessor.save_image(
-            image, f"{self.output_path}/square_post_{output_count}.png"
+            image, f"{self.output_path}/01_feed_post_{output_count}.png"
         )
 
-    def paginate_content_media(self, data):
+    def paginate_content_media(self, data) -> None:
+        """
+        Pagina as mídias de conteúdo.
+
+        Parâmetros:
+            data (dict): Os dados do post.
+        """
         for index, content_image_filename in enumerate(
             data["content"]["img_filenames"]
         ):
@@ -173,9 +240,19 @@ class ImageBuilder:
 
             self.build_content_media_image(content_image_filename, index, end=end)
 
-    def build_content_media_image(self, content_image_filename, index, end):
+    def build_content_media_image(self, content_image_filename, index, end) -> None:
+        """
+        Constrói a imagem de mídia de conteúdo com base nos dados fornecidos.
+
+        Parâmetros:
+            content_image_filename (str): O nome do arquivo de mídia de conteúdo.
+            index (int): O índice da imagem de mídia de conteúdo.
+            end (bool): Indica se é a última imagem de mídia de conteúdo.
+
+        Esta função constrói a imagem de mídia de conteúdo com base no nome do arquivo, índice e se é a última imagem.
+        """
         height_frame = 900
-        image, draw = ImageProcessor.start_image("backgrounds/3c.png")
+        image, draw = ImageProcessor.start_image(self.get_background())
 
         image, frame = ImageProcessor.place_frame(
             image,
@@ -213,10 +290,18 @@ class ImageBuilder:
             )
 
         ImageProcessor.save_image(
-            image, f"{self.output_path}/square_content_{index}.png"
+            image, f"{self.output_path}/02_feed_content_media_{index}.png"
         )
 
-    def paginate_comments_images(self, data, output_count=1):
+    def paginate_comments_images(self, data, output_count=1) -> None:
+        """
+        Pagina as imagens dos comentários de acordo com a altura máxima permitida(em consideração a soma de linhas e espaçamentos).
+
+        Parâmetros:
+            data (dict): Os dados dos comentários.
+            output_count (int, opcional): O contador de saída para nomear os arquivos de imagem. O padrão é 1.
+        """
+
         max_height = 800  # 900
         height_comment_header = 120  # espaçamentos
 
@@ -255,11 +340,24 @@ class ImageBuilder:
             output_count=output_count,
             end=last_image,
         )
-        return 1
 
-    def build_comments_image(self, comments, height_frame, output_count=1, end=False):
+    def build_comments_image(
+        self, comments, height_frame, output_count=1, end=False
+    ) -> None:
+        """
+        Constrói a imagem dos comentários com base nos dados fornecidos.
 
-        image, draw = ImageProcessor.start_image("backgrounds/3c.png")
+        Parâmetros:
+            comments (list): Uma lista de dicionários contendo os dados dos comentários.
+            height_frame (int): A altura do frame da imagem.
+            output_count (int, opcional): O contador de saída para nomear o arquivo de imagem. O padrão é 1.
+            end (bool, opcional): Indica se é a última imagem de comentários. O padrão é False.
+
+        Esta função constrói a imagem dos comentários com base nos dados fornecidos, incluindo os comentários,
+        a altura do frame da imagem e se é a última imagem.
+        """
+
+        image, draw = ImageProcessor.start_image(self.get_background())
 
         # frame
         image, frame = ImageProcessor.place_frame(image, height=height_frame)
@@ -361,10 +459,21 @@ class ImageBuilder:
                 y=frame["end_y"] - 70,
             )
         ImageProcessor.save_image(
-            image, f"{self.output_path}/comments_{output_count}.png"
+            image, f"{self.output_path}/03_feed_comments_{output_count}.png"
         )
 
     def place_author_header(self, image, draw, content_top_y):
+        """
+        Coloca o cabeçalho do autor na imagem.
+
+        Parâmetros:
+            image: A imagem na qual o cabeçalho será colocado.
+            draw: O objeto de desenho da imagem.
+            content_top_y: A posição Y do topo do conteúdo na imagem.
+
+        Retorna:
+            image: A imagem com o cabeçalho do autor colocado.
+        """
         author_name = self.data["author"]["name"]
         author_headline = (
             self.data["author"]["headline"][:65] + "..."
@@ -406,8 +515,19 @@ class ImageBuilder:
 
         return image
 
+    background_count = 0
 
-if __name__ == "__main__":
-    image_builder = ImageBuilder(path="last_scrap")
-    # print(image_builder.data["comments"])
-    image_builder.build()
+    def get_background(self):
+        """
+        Retorna o caminho para o arquivo de imagem de fundo.
+
+        Retorna:
+            str: O caminho para o arquivo de imagem de fundo.
+        """
+        if self.background_continous:
+            self.background_count += 1
+            return (
+                f"backgrounds/carrossel/{self.background}/{self.background_count}.png"
+            )
+        else:
+            return f"backgrounds/{self.background}.png"
