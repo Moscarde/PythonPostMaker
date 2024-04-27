@@ -114,6 +114,10 @@ class ImageProcessor:
         image.paste(new_image, pos, mask=new_image)
 
         return image, pos
+    
+    @staticmethod
+    def save_image(image, path):
+        image.save(path)
 
 
 if __name__ == "__main__":
