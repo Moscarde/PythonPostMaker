@@ -157,7 +157,7 @@ class ImageBuilder:
         self.place_author_header(image, draw, frame["y"] + 20)
 
         if continued:
-            image = ImageProcessor.paste_image(
+            image, pos = ImageProcessor.paste_image(
                 image,
                 "backgrounds/header_ellipsis.png",
                 y=frame["y"] + 110,
@@ -366,7 +366,7 @@ class ImageBuilder:
         ImageProcessor.paste_image(
             image,
             "backgrounds/header_ellipsis.png",
-            y=(frame["y"] + 10,),
+            y=(frame["y"] + 10),
         )
 
         comment_bg = "backgrounds/comment_bg.png"

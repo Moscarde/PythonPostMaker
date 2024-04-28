@@ -182,7 +182,6 @@ class ImageProcessor:
         """
 
         new_image = Image.open(path)
-
         if not size:
             size = (new_image.width, new_image.height)
         new_image = new_image.resize(size)
@@ -190,7 +189,7 @@ class ImageProcessor:
         if center:
             pos = (
                 (image.width - new_image.width) // 2,
-                (image.height - new_image.height) // 2,
+                (image.height - new_image.height) // 2
             )
 
         if y:
