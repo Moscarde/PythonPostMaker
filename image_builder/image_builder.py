@@ -12,11 +12,11 @@ class ImageBuilder:
     Parâmetros:
         path (str): O caminho para o diretório de entrada.
         background (str, opcional): O nome do arquivo de imagem de fundo ou pasta dentro de "backgrounds/carrossel" contendo as imagens. O padrão
-        é "default_blue" (background_continous=False).
-        background_continous (bool, opcional): Indica se o fundo deve ser contínuo em todas as páginas. O padrão é False.
+        é "default_blue" (background_carrossel=False).
+        background_carrossel (bool, opcional): Indica se o fundo deve ser contínuo em todas as páginas. O padrão é False.
     """
 
-    def __init__(self, path, background="default_blue", background_continous=False):
+    def __init__(self, path, background="default_blue", background_carrossel=False):
         self.path = path
         self.output_path = self.path + "/processed_images"
         self.data = self.read_file(os.path.join(path, "data.json"))
@@ -24,7 +24,7 @@ class ImageBuilder:
         self.text_font = "seguiemj"
         self.text_size = 22
         self.background = background
-        self.background_continous = background_continous
+        self.background_carrossel = background_carrossel
 
     def read_file(self, path) -> dict:
         """
@@ -48,12 +48,15 @@ class ImageBuilder:
             print("Erro ao ler o arquivo:", e)
             return None
 
-    def build(self, anonymous=False) -> None:
+    def build(self, anonymous=False, background_carrossel=False, background="default_blue") -> None:
         """
         Constrói as imagens com base nos dados fornecidos.
 
         Parâmetros:
             anonymous (bool, opcional): Se True, substitui os dados do autor e dos comentários por valores padrão.
+            background_carrossel (bool, opcional): Indica se o fundo deve ser contínuo em todas as páginas. O padrão é False.
+            background (str, opcional): O nome do arquivo de imagem de fundo ou pasta dentro de "backgrounds/carrossel"
+            contendo as imagens. O padrão é "default_blue".
 
         Retorno:
             int: 1 se as imagens forem construídas com sucesso, 0 caso contrário.
@@ -62,12 +65,16 @@ class ImageBuilder:
         os dados do autor e dos comentários serão substituídos por valores padrão antes da construção das imagens.
         """
 
-        # TODO: adicionar bloco try
         if not os.path.exists(self.output_path):
             os.mkdir(self.output_path)
 
         if anonymous:
             self.data = self.anonimous_data()
+        
+        if background_carrossel:
+            self.background_carrossel = background_carrossel
+        
+        self.background = background
 
         self.paginate_post_text(data=self.data)
 
@@ -524,7 +531,7 @@ class ImageBuilder:
         Retorna:
             str: O caminho para o arquivo de imagem de fundo.
         """
-        if self.background_continous:
+        if self.background_carrossel:
             self.background_count += 1
             return (
                 f"backgrounds/carrossel/{self.background}/{self.background_count}.png"
