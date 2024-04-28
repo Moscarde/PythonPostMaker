@@ -48,7 +48,9 @@ class ImageBuilder:
             print("Erro ao ler o arquivo:", e)
             return None
 
-    def build(self, anonymous=False, background_carrossel=False, background="default_blue") -> None:
+    def build(
+        self, anonymous=False, background_carrossel=False, background="default_blue"
+    ) -> None:
         """
         Constrói as imagens com base nos dados fornecidos.
 
@@ -70,10 +72,10 @@ class ImageBuilder:
 
         if anonymous:
             self.data = self.anonimous_data()
-        
+
         if background_carrossel:
             self.background_carrossel = background_carrossel
-        
+
         self.background = background
 
         self.paginate_post_text(data=self.data)
@@ -394,7 +396,9 @@ class ImageBuilder:
 
             age = comment["comment_age"]
 
-            if "default" in comment["img_filename"]:
+            if "default" in comment["img_filename"] or not os.path.exists(
+                f"{self.path}/{comment['img_filename']}"
+            ):
                 img_path = "backgrounds/default_profile_photo.png"
             else:
                 img_path = f"{self.path}/{comment['img_filename']}"
