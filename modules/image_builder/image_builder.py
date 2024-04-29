@@ -539,8 +539,6 @@ class ImageBuilder:
 
         if self.background_carrossel:
             if comments_output_count is not None:
-                print("comments_output_count", comments_output_count)
-                print("background_count", self.background_count)
                 comment_output = self.background_count + comments_output_count
                 return (
                 f"assets/backgrounds/carrossel/{self.background}/{comment_output}.png"
