@@ -1,0 +1,9 @@
+background_carrossel: False  # Define se o background será no modelo carrossel ou contínuo
+background: "default_blue"  # Define o nome do arquivo de background ou a pasta com as imagens de carrossel
+anom_users: False  # Define se irão substituir os dados do autor e dos comentários por valores anônimos
+
+# Se o carrossel estiver desativado, o fundo será o nome do arquivo, caso contrário, será o nome da pasta
+# Exemplo: Se background_carrossel for False, background será o nome do arquivo. Se True, será o nome da pasta
+# Arquivos precisam ser no formato PNG
+# Arquivos na pasta de carrossel precisam estar numerados sequencialmente (1.png, 2.png, 3.png, etc...)
+# Não é necessário inserir a extensão .png em "background"

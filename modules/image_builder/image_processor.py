@@ -24,7 +24,7 @@ class ImageProcessor:
 
     @staticmethod
     def place_frame(
-        image, height, width=860, frame_path="backgrounds/white_frame.png"
+        image, height, width=860, frame_path="assets/img_elements/white_frame.png"
     ) -> Tuple[Image.Image, dict]:
         """
         Posiciona o quadro dentro de uma imagem.
@@ -99,7 +99,7 @@ class ImageProcessor:
             ImageDraw.Draw: O objeto de desenho atualizado com o texto adicionado.
         """
 
-        font = ImageFont.truetype(f"fonts/{font}.ttf", font_size)
+        font = ImageFont.truetype(f"assets/fonts/{font}.ttf", font_size)
 
         if not multline:
             draw.text(pos, text=text, font=font, fill=color)

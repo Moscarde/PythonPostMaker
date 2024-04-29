@@ -1,8 +1,8 @@
 import json
 import os
 
-from image_builder.image_processor import ImageProcessor
-from image_builder.text_processor import TextProcessor
+from modules.image_builder.image_processor import ImageProcessor
+from modules.image_builder.text_processor import TextProcessor
 
 
 class ImageBuilder:
@@ -11,7 +11,7 @@ class ImageBuilder:
 
     Parâmetros:
         path (str): O caminho para o diretório de entrada.
-        background (str, opcional): O nome do arquivo de imagem de fundo ou pasta dentro de "backgrounds/carrossel" contendo as imagens. O padrão
+        background (str, opcional): O nome do arquivo de imagem de fundo ou pasta dentro de "assets/backgrounds/carrossel" contendo as imagens. O padrão
         é "default_blue" (background_carrossel=False).
         background_carrossel (bool, opcional): Indica se o fundo deve ser contínuo em todas as páginas. O padrão é False.
     """
@@ -57,7 +57,7 @@ class ImageBuilder:
         Parâmetros:
             anonymous (bool, opcional): Se True, substitui os dados do autor e dos comentários por valores padrão.
             background_carrossel (bool, opcional): Indica se o fundo deve ser contínuo em todas as páginas. O padrão é False.
-            background (str, opcional): O nome do arquivo de imagem de fundo ou pasta dentro de "backgrounds/carrossel"
+            background (str, opcional): O nome do arquivo de imagem de fundo ou pasta dentro de "assets/backgrounds/carrossel"
             contendo as imagens. O padrão é "default_blue".
 
         Retorno:
@@ -168,7 +168,7 @@ class ImageBuilder:
         if continued:
             image, pos = ImageProcessor.paste_image(
                 image,
-                "backgrounds/header_ellipsis.png",
+                "assets/img_elements/header_ellipsis.png",
                 y=frame["y"] + 110,
             )
 
@@ -192,21 +192,21 @@ class ImageBuilder:
         if not end:
             ImageProcessor.paste_image(
                 image,
-                "backgrounds/ellipsis_continue.png",
+                "assets/img_elements/ellipsis_continue.png",
                 y=frame["end_y"] - 72,
             )
 
         else:
             ImageProcessor.paste_image(
                 image,
-                "backgrounds/action_bar.png",
+                "assets/img_elements/action_bar.png",
                 size=(int(800 * 1), int(65 * 1)),
                 y=frame["end_y"] - 80,
             )
 
             ImageProcessor.paste_image(
                 image,
-                "backgrounds/reaction_icon_3.png",
+                "assets/img_elements/reaction_icon_3.png",
                 pos=(frame["x"] + 30, frame["end_y"] - 90),
             )
 
@@ -287,14 +287,14 @@ class ImageBuilder:
         if end:
             image, pos = ImageProcessor.paste_image(
                 image,
-                "backgrounds/ellipsis_continue.png",
+                "assets/img_elements/ellipsis_continue.png",
                 y=frame["end_y"] - 70,
             )
 
         else:
             image, pos = ImageProcessor.paste_image(
                 image,
-                "backgrounds/action_bar.png",
+                "assets/img_elements/action_bar.png",
                 y=frame["end_y"] - 75,
             )
 
@@ -374,11 +374,11 @@ class ImageBuilder:
         # ellipsis continued
         ImageProcessor.paste_image(
             image,
-            "backgrounds/header_ellipsis.png",
+            "assets/img_elements/header_ellipsis.png",
             y=(frame["y"] + 10),
         )
 
-        comment_bg = "backgrounds/comment_bg.png"
+        comment_bg = "assets/img_elements/comment_bg.png"
         # comment 0
 
         comment_start_y = frame["y"] + 80
@@ -399,7 +399,7 @@ class ImageBuilder:
             if "default" in comment["img_filename"] or not os.path.exists(
                 f"{self.path}/{comment['img_filename']}"
             ):
-                img_path = "backgrounds/default_profile_photo.png"
+                img_path = "assets/img_elements/default_profile_photo.png"
             else:
                 img_path = f"{self.path}/{comment['img_filename']}"
 
@@ -466,7 +466,7 @@ class ImageBuilder:
         if not end:
             ImageProcessor.paste_image(
                 image=image,
-                path="backgrounds/ellipsis_continue.png",
+                path="assets/img_elements/ellipsis_continue.png",
                 y=frame["end_y"] - 70,
             )
         ImageProcessor.save_image(
@@ -494,7 +494,7 @@ class ImageBuilder:
         post_time_stamp = self.data["author"]["post_age"]
 
         if "default" in self.data["author"]["img_filename"]:
-            author_image_path = "backgrounds/default_profile_photo.png"
+            author_image_path = "assets/img_elements/default_profile_photo.png"
         else:
             author_image_path = f"{self.path}/{self.data['author']['img_filename']}"
 
@@ -538,7 +538,7 @@ class ImageBuilder:
         if self.background_carrossel:
             self.background_count += 1
             return (
-                f"backgrounds/carrossel/{self.background}/{self.background_count}.png"
+                f"assets/backgrounds/carrossel/{self.background}/{self.background_count}.png"
             )
         else:
-            return f"backgrounds/{self.background}.png"
+            return f"assets/backgrounds/{self.background}.png"
