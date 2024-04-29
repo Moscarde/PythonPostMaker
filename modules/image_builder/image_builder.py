@@ -327,7 +327,6 @@ class ImageBuilder:
             if n_lines > 23 or comment_text == "":
                 continue
 
-            print(i, n_lines)
             comment_height = n_lines * self.height_line + height_comment_header
 
             if height_frame + comment_height > max_height:
@@ -406,7 +405,7 @@ class ImageBuilder:
             text = TextProcessor.break_line(comment["comment_text"], line_max=65)
 
             n_lines = len(text.split("\n"))
-            background_size = 100 + int(30 * n_lines)
+            background_size = 100 + int(32 * n_lines)
 
             # bg
             ImageProcessor.paste_image(
@@ -542,6 +541,7 @@ class ImageBuilder:
                 background_path = f"assets/backgrounds/carrossel/{self.background}/{comment_output}.png"
 
                 if not os.path.exists(background_path):
+                    print("Limite de carrossel ultrapassado, preenchendo com primeira imagem")
                     background_path = f"assets/backgrounds/carrossel/{self.background}/1.png"
                 return background_path
             else:
