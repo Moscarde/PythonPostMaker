@@ -142,5 +142,5 @@ def debug_builder():
 
 
 if __name__ == "__main__":
-    debug_builder() # exemplo de uso para testes
-    # cli()
+    # debug_builder() # exemplo de uso para testes
+    cli()
