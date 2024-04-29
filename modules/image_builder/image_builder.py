@@ -120,13 +120,6 @@ class ImageBuilder:
         text_splited = text.split("\n")
         n_lines = len(text_splited)
 
-        if n_lines > max_lines_per_image:
-            text = "\n".join(text_splited[: max_lines_per_image - 4])
-            page_text = "\n".join(text_splited[max_lines_per_image - 4 :])
-            new_data = data.copy()
-            new_data["content"]["text"] = page_text
-            self.paginate_post_text(data=new_data, output_count=output_count + 1)
-
         text_to_build = "\n".join(
             text_splited
             if n_lines <= max_lines_per_image
@@ -144,6 +137,13 @@ class ImageBuilder:
             end=n_lines < max_lines_per_image,
             height=height,
         )
+
+        if n_lines > max_lines_per_image:
+            text = "\n".join(text_splited[: max_lines_per_image - 4])
+            page_text = "\n".join(text_splited[max_lines_per_image - 4 :])
+            new_data = data.copy()
+            new_data["content"]["text"] = page_text
+            self.paginate_post_text(data=new_data, output_count=output_count + 1)
 
     def build_post_text(self, text, output_count, continued, end, height) -> None:
         """
@@ -299,7 +299,7 @@ class ImageBuilder:
             )
 
         ImageProcessor.save_image(
-            image, f"{self.output_path}/02_feed_content_media_{index}.png"
+            image, f"{self.output_path}/02_feed_content_media_{index + 1}.png"
         )
 
     def paginate_comments_images(self, data, output_count=1) -> None:
@@ -366,7 +366,7 @@ class ImageBuilder:
         a altura do frame da imagem e se é a última imagem.
         """
 
-        image, draw = ImageProcessor.start_image(self.get_background())
+        image, draw = ImageProcessor.start_image(self.get_background(output_count))
 
         # frame
         image, frame = ImageProcessor.place_frame(image, height=height_frame)
@@ -528,15 +528,25 @@ class ImageBuilder:
 
     background_count = 0
 
-    def get_background(self):
+    def get_background(self, comments_output_count = None):
+        
         """
         Retorna o caminho para o arquivo de imagem de fundo.
 
         Retorna:
             str: O caminho para o arquivo de imagem de fundo.
         """
+
         if self.background_carrossel:
-            self.background_count += 1
+            if comments_output_count is not None:
+                print("comments_output_count", comments_output_count)
+                print("background_count", self.background_count)
+                comment_output = self.background_count + comments_output_count
+                return (
+                f"assets/backgrounds/carrossel/{self.background}/{comment_output}.png"
+            )
+            else:
+                self.background_count += 1
             return (
                 f"assets/backgrounds/carrossel/{self.background}/{self.background_count}.png"
             )
