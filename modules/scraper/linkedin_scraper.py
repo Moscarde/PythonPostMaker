@@ -27,20 +27,57 @@ from datetime import datetime
 import shutil
 
 
-def clear_text(text):
-    # Remove caracteres não permitidos e converte para minúsculas
+def clear_text(text) -> str:
+    """
+    Substitui caracteres não alfanuméricos em uma string por underscores e converte
+    a string para minúsculas.
+
+    Parâmetros:
+        text (str): A string que será limpa.
+
+    Retorna:
+        str: A string limpa, com caracteres não alfanuméricos substituídos por underscores
+        e convertida para minúsculas.
+    """
     text = re.sub(r"[^a-zA-Z0-9]", "_", text.lower())
     return text
 
 
 class LinkedinScraper:
+    """
+    Classe para realizar scraping de dados do LinkedIn.
+
+    Atributos:
+        driver (WebDriver): O driver do navegador.
+        date (str): A data atual no formato 'YYYY-MM-DD'.
+        base_path (str): O caminho base para salvar os dados raspados.
+        output_path (str): O caminho de saída para os dados raspados.
+
+    Métodos:
+        __init__(): Inicializa a instância da classe e configura os atributos necessários.
+        scrape_data(url, debug=False): Realiza o scraping de dados de uma URL do LinkedIn.
+    """
+
     def __init__(self):
+        """
+        Inicializa a instância da classe e configura os atributos necessários.
+        """
         self.driver = webdriver.Chrome()
         self.date = datetime.now().strftime("%Y-%m-%d")
         self.base_path = "scraped/" + self.date
         self.output_path = ""  
 
     def scrape_data(self, url, debug = False):
+        """
+        Realiza o scraping de dados de uma URL do LinkedIn.
+
+        Parâmetros:
+            url (str): A URL da postagem no LinkedIn.
+            debug (bool, optional): Se True, salva informações coletadas também na pasta last_scraped. Default False.
+
+        Retorna:
+            None: Se não foi possível obter os dados.
+        """
         self.driver.get(url)
         self.close_sign_modal()
 
@@ -56,6 +93,12 @@ class LinkedinScraper:
             self.debug_data()
 
     def close_sign_modal(self):
+        """
+        Fecha o modal de login, se estiver presente.
+
+        Retorna:
+            bool: True se o modal foi fechado com sucesso, False se não foi possível fechar o modal dentro do tempo limite.
+        """
         xpath_close_modal = (
             "//icon[contains(@class, 'contextual-sign-in-modal__modal-dismiss-icon')]"
         )
@@ -68,6 +111,12 @@ class LinkedinScraper:
             return False
 
     def verify_content(self):
+        """
+        Verifica se o conteúdo na página do LinkedIn está disponível.
+
+        Retorna:
+            bool: True se o conteúdo estiver disponível, False se não estiver disponível.
+        """
         # 1
         if not "linkedin.com" in self.driver.current_url:
             return False
@@ -89,6 +138,15 @@ class LinkedinScraper:
             return True
 
     def get_data(self):
+        """
+        Obtém os dados da página.
+
+        Retorna:
+            dict: Um dicionário contendo os dados obtidos da página.
+                As chaves incluem 'author', 'content' e 'comments'.
+                Cada chave está associada aos dados relevantes obtidos da página.
+                Se ocorrer um erro durante a obtenção dos dados, retorna None.
+        """
         data = {}
         try:
             for i in range(9):
@@ -112,6 +170,16 @@ class LinkedinScraper:
             return None
 
     def get_author(self, soup_article):
+        """
+        Obtém informações do autor do artigo.
+
+        Parâmetros:
+            soup_article (BeautifulSoup): Um objeto BeautifulSoup representando o artigo.
+
+        Retorna:
+            dict: Um dicionário contendo informações do autor, incluindo nome, headline,
+            idade do post, URL da imagem e nome do arquivo de imagem.
+        """
         header = soup_article.find(
             "div", attrs={"data-test-id": "main-feed-activity-card__entity-lockup"}
         )
@@ -136,6 +204,16 @@ class LinkedinScraper:
         }
 
     def get_content(self, soup_article):
+        """
+        Obtém o conteúdo do artigo.
+
+        Parâmetros:
+            soup_article (BeautifulSoup): Um objeto BeautifulSoup representando o artigo.
+
+        Retorna:
+            dict: Um dicionário contendo o texto do conteúdo, URLs das imagens, tipo de conteúdo,
+                reações e nomes de arquivo das imagens.
+        """
         content_text = soup_article.find(
             "p", class_="attributed-text-segment-list__content"
         ).text
@@ -148,8 +226,6 @@ class LinkedinScraper:
         else:
             content_imgs_src = []
 
-        print("media:", media)
-        print("content_imgs_src:", content_imgs_src)
         reactions_element = soup_article.find(
             "div", class_="main-feed-activity-card__social-actions"
         ).text
@@ -167,6 +243,16 @@ class LinkedinScraper:
         }
 
     def get_media(self, soup_article):
+        """
+        Obtém mídia do artigo.
+
+        Parâmetros:
+            soup_article (BeautifulSoup): Um objeto BeautifulSoup representando o artigo.
+
+        Retorna:
+            tuple or None: Uma tupla contendo as URLs da mídia e o tipo de mídia, se encontradas,
+            caso contrário, retorna None.
+        """
         media_photo_video = self.get_media_photo_video(soup_article)
         if media_photo_video is not None:
             return media_photo_video
@@ -178,6 +264,16 @@ class LinkedinScraper:
         return None
 
     def get_media_photo_video(self, soup_article):
+        """
+        Obtém fotos ou vídeos do artigo.
+
+        Parâmetros:
+            soup_article (BeautifulSoup): Um objeto BeautifulSoup representando o artigo.
+
+        Retorna:
+            tuple or None: Uma tupla contendo as URLs da mídia e o tipo de mídia, se encontradas,
+            caso contrário, retorna None.
+        """
         try:
             content_imgs_src = []
             
@@ -209,6 +305,13 @@ class LinkedinScraper:
             return None
     
     def get_media_iframe(self):
+        """
+        Obtém mídia do tipo iframe.
+
+        Retorna:
+            tuple or None: Uma tupla contendo as URLs da mídia e o tipo de mídia, se encontradas,
+            caso contrário, retorna None.
+        """
         try:
             xpath_iframe = "//iframe[@data-id='feed-paginated-document-content']"
             iframe = self.driver.find_element(by=By.XPATH, value=xpath_iframe)
@@ -251,11 +354,22 @@ class LinkedinScraper:
 
 
     def get_comments(self, soup_article):
+        """
+        Obtém os comentários do artigo.
+
+        Parâmetros:
+            soup_article (BeautifulSoup): Um objeto BeautifulSoup representando o artigo.
+
+        Retorna:
+            list: Uma lista de dicionários, cada um representando um comentário. Cada dicionário
+                contém informações sobre o autor do comentário, incluindo nome, headline, idade do comentário,
+                URL do perfil, URL da imagem de perfil, texto do comentário e nome do arquivo da imagem de perfil.
+                Retorna uma lista vazia se não houver comentários.
+        """
         comments_element = soup_article.find_all("section", class_="comment")[:3]
 
         comments = []
         for index, comment in enumerate(comments_element):
-            current_comment = {}
 
             comment_header = comment.find(class_="comment__header").text.split("\n")
             comment_header_texts = [
@@ -285,6 +399,15 @@ class LinkedinScraper:
         return comments
 
     def save_data(self, data):
+        """
+        Salva os dados coletados em um arquivo JSON e as imagens em uma pasta.
+
+        Parâmetros:
+            data (dict): Um dicionário contendo os dados a serem salvos.
+
+        Retorna:
+            None
+        """
         folder_name_author = clear_text(data["author"]["name"])
         folder_name_post = clear_text(data["content"]["text"][:20])
 
@@ -303,6 +426,15 @@ class LinkedinScraper:
         self.save_images(data)
 
     def save_images(self, data):
+        """
+        Salva as imagens relacionadas aos dados coletados em uma pasta.
+
+        Parâmetros:
+            data (dict): Um dicionário contendo os dados que incluem informações sobre as imagens.
+
+        Retorna:
+            None
+        """
         self.driver.get(data["author"]["img_src"])
         sleep(0.5)
 
@@ -334,6 +466,12 @@ class LinkedinScraper:
                 )
 
     def debug_data(self):
+        """
+        Salva os dados coletados em uma pasta de depuração para análise.
+
+        Retorna:
+            None
+        """
         print("Saving data to debugging folder...")
 
         # copy to folder
@@ -347,11 +485,16 @@ class LinkedinScraper:
         shutil.copytree(input_folder, output_folder)
 
     def close(self):
+        """
+        Fecha o navegador após a conclusão da tarefa.
+
+        Retorna:
+            None
+        """
         self.driver.close()
 
 
 if __name__ == "__main__":
-    # abrahan
     url = """https://www.linkedin.com/posts/enriquemross_prot%C3%B3tipos-dos-dashboards-ugcPost-7187964353617285120-ul4Q?utm_source=share&utm_medium=member_desktop
 """
     scraper = LinkedinScraper()
