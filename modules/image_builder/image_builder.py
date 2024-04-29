@@ -311,14 +311,13 @@ class ImageBuilder:
             output_count (int, opcional): O contador de saída para nomear os arquivos de imagem. O padrão é 1.
         """
 
-        max_height = 800  # 900
+        max_height = 900  # 900
         height_comment_header = 120  # espaçamentos
 
         staged_comments = []
         height_frame = 110  # seria o header
 
         for i, comment in enumerate(data["comments"]):
-
             comment_text = TextProcessor.break_line(
                 comment["comment_text"], line_max=65
             )
@@ -328,6 +327,7 @@ class ImageBuilder:
             if n_lines > 23 or comment_text == "":
                 continue
 
+            print(i, n_lines)
             comment_height = n_lines * self.height_line + height_comment_header
 
             if height_frame + comment_height > max_height:
@@ -528,8 +528,7 @@ class ImageBuilder:
 
     background_count = 0
 
-    def get_background(self, comments_output_count = None):
-        
+    def get_background(self, comments_output_count=None):
         """
         Retorna o caminho para o arquivo de imagem de fundo.
 
@@ -540,13 +539,13 @@ class ImageBuilder:
         if self.background_carrossel:
             if comments_output_count is not None:
                 comment_output = self.background_count + comments_output_count
-                return (
-                f"assets/backgrounds/carrossel/{self.background}/{comment_output}.png"
-            )
+                background_path = f"assets/backgrounds/carrossel/{self.background}/{comment_output}.png"
+
+                if not os.path.exists(background_path):
+                    background_path = f"assets/backgrounds/carrossel/{self.background}/1.png"
+                return background_path
             else:
                 self.background_count += 1
-            return (
-                f"assets/backgrounds/carrossel/{self.background}/{self.background_count}.png"
-            )
+            return f"assets/backgrounds/carrossel/{self.background}/{self.background_count}.png"
         else:
             return f"assets/backgrounds/{self.background}.png"
