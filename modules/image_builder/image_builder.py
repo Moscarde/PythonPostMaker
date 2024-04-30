@@ -327,7 +327,7 @@ class ImageBuilder:
             if n_lines > 23 or comment_text == "":
                 continue
 
-            comment_height = n_lines * self.height_line + height_comment_header
+            comment_height = (n_lines + 1) * self.height_line + height_comment_header
 
             if height_frame + comment_height > max_height:
                 new_data = data.copy()
